@@ -8,12 +8,13 @@ from ta.volatility import BollingerBands
 def download_data(ticker, start, end):
     return yf.download(ticker, start=start, end=end)
 
-def calculate_indicators(data):
+def calculate_indicators(data, ma_days=50, ema_days=50, bb_std_dev=2):
     # 移動平均線 (MA) 和 指數平滑移動平均線 (EMA)
-    data['MA50'] = SMAIndicator(data['Close'], window=50).sma_indicator()
-    data['MA200'] = SMAIndicator(data['Close'], window=200).sma_indicator()
-    data['EMA50'] = EMAIndicator(data['Close'], window=50).ema_indicator()
-    data['EMA200'] = EMAIndicator(data['Close'], window=200).ema_indicator()
+    data[f'MA{ma_days}'] = SMAIndicator(data['Close'], window=ma_days).sma_indicator()
+    data[f'MA{ma_days*2}'] = SMAIndicator(data['Close'], window=ma_days*2).sma_indicator()
+    data[f'EMA{ema_days}'] = EMAIndicator(data['Close'], window=ema_days).ema_indicator()
+    data[f'EMA{ema_days*2}'] = EMAIndicator(data['Close'], window=ema_days*2).ema_indicator()
+
 
     # KD 指標
     stoch = StochasticOscillator(high=data['High'], low=data['Low'], close=data['Close'])
@@ -27,7 +28,7 @@ def calculate_indicators(data):
     data['MACD_Hist'] = macd.macd_diff()
 
     # 布林通道
-    bollinger = BollingerBands(data['Close'])
+    bollinger = BollingerBands(data['Close'], window_dev=bb_std_dev)
     data['BB_High'] = bollinger.bollinger_hband()
     data['BB_Low'] = bollinger.bollinger_lband()
     data['BB_Mid'] = bollinger.bollinger_mavg()
@@ -41,13 +42,23 @@ def calculate_indicators(data):
     # ADX 指標
     adx = ADXIndicator(high=data['High'], low=data['Low'], close=data['Close'])
     data['ADX'] = adx.adx()
+    
+    # 斐波那契回調
+    high_price = data['High'].max()
+    low_price = data['Low'].min()
+    diff = high_price - low_price
+    data['Fibonacci_23.6'] = high_price - (diff * 0.236)
+    data['Fibonacci_38.2'] = high_price - (diff * 0.382)
+    data['Fibonacci_50.0'] = high_price - (diff * 0.5)
+    data['Fibonacci_61.8'] = high_price - (diff * 0.618)
+    data['Fibonacci_100.0'] = low_price
 
-def generate_signals(data):
+def generate_signals(data, ma_days=50, ema_days=50):
     # 移動平均線 (MA) 買賣點
-    data['MA_Signal'] = np.where(data['MA50'] > data['MA200'], 1, -1)
+    data['MA_Signal'] = np.where(data[f'MA{ma_days}'] > data[f'MA{ma_days*2}'], 1, -1)
 
     # EMA 買賣點
-    data['EMA_Signal'] = np.where(data['EMA50'] > data['EMA200'], 1, -1)
+    data['EMA_Signal'] = np.where(data[f'EMA{ema_days}'] > data[f'EMA{ema_days*2}'], 1, -1)
 
     # KD 指標買賣點
     data['KD_Signal'] = np.where(data['K'] > data['D'], 1, -1)
@@ -65,13 +76,18 @@ def generate_signals(data):
     data['Signal'] = data[['MA_Signal', 'EMA_Signal', 'KD_Signal', 'MACD_Signal', 'RSI_Signal', 'BB_Signal']].mean(axis=1)
     data['Buy_Sell'] = np.where(data['Signal'] > 0, 'Buy', np.where(data['Signal'] < 0, 'Sell', 'Hold'))
 
-def plot_data(data):
-    fig, axes = plt.subplots(5, 1, figsize=(14, 24))
+
+def plot_data(data, ticker, ma_days=50, ema_days=50):
+    fig, axes = plt.subplots(8, 1, figsize=(14, 36))
+    fig.suptitle(f'Stock Analysis for {ticker}', fontsize=18)
+    
+    # 調整圖形與標題之間的間距
+    plt.subplots_adjust(top=0.95, hspace=0.3)
 
     # 收盤價及移動平均線
     axes[0].plot(data['Close'], label='Close')
-    axes[0].plot(data['MA50'], label='MA50')
-    axes[0].plot(data['MA200'], label='MA200')
+    axes[0].plot(data[f'MA{ma_days}'], label=f'MA{ma_days}')
+    axes[0].plot(data[f'MA{ma_days*2}'], label=f'MA{ma_days*2}')
     axes[0].set_title('Close Price and Moving Averages')
     axes[0].legend()
 
@@ -96,13 +112,34 @@ def plot_data(data):
     axes[3].plot(data['BB_Mid'], label='Bollinger Mid')
     axes[3].set_title('Bollinger Bands')
     axes[3].legend()
-
-    # ADX
-    axes[4].plot(data['ADX'], label='ADX')
-    axes[4].set_title('ADX')
+    
+    # KD 指標
+    axes[4].plot(data['K'], label='K')
+    axes[4].plot(data['D'], label='D')
+    axes[4].axhline(80, color='red', linestyle='--')
+    axes[4].axhline(20, color='green', linestyle='--')
+    axes[4].set_title('KD Indicator')
     axes[4].legend()
 
-    plt.tight_layout()
+    # ADX
+    axes[5].plot(data['ADX'], label='ADX')
+    axes[5].set_title('ADX')
+    axes[5].legend()
+
+    # 斐波那契回調
+    axes[6].plot(data['Close'], label='Close')
+    axes[6].axhline(data['Fibonacci_23.6'][0], color='red', linestyle='--', label='Fibonacci 23.6%')
+    axes[6].axhline(data['Fibonacci_38.2'][0], color='orange', linestyle='--', label='Fibonacci 38.2%')
+    axes[6].axhline(data['Fibonacci_50.0'][0], color='yellow', linestyle='--', label='Fibonacci 50.0%')
+    axes[6].axhline(data['Fibonacci_61.8'][0], color='green', linestyle='--', label='Fibonacci 61.8%')
+    axes[6].axhline(data['Fibonacci_100.0'][0], color='blue', linestyle='--', label='Fibonacci 100.0%')
+    axes[6].set_title('Fibonacci Retracement')
+    axes[6].legend()
+    
+    # 標準差
+    axes[7].plot(data['STD'], label='Standard Deviation')
+    axes[7].set_title('Standard Deviation')
+    axes[7].legend()
+
+    plt.tight_layout(rect=[0, 0, 1, 0.98])  # 調整布局，確保標題不重疊
     plt.show()
-
-
