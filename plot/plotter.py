@@ -30,8 +30,6 @@ class Plotter:
                 'mav': (20, 60),
                 'addplot': add_signals(df, 'SMA_Position', 'SMA_Position')
             })
-            
-
 
         
         elif indicator == 'MACD':
@@ -46,11 +44,69 @@ class Plotter:
             
         elif indicator == 'Bollinger_Bands':
             ap_upper = mpf.make_addplot(df['Upper_Band'], color='blue')
-            ap_lower = mpf.make_addplot(df['Lower_Band'], color='blue')
+            ap_lower = mpf.make_addplot(df['Lower_Band'], color='red')
             kwargs.update({
                 'title': 'Bollinger Bands Analysis',
                 'addplot': [ap_upper, ap_lower] + add_signals(df, 'Bollinger_Bands_Position', 'Bollinger_Bands_Position')
             })
+        
+        elif indicator == 'RSI':
+            ap_rsi = mpf.make_addplot(df['RSI'], panel=1, color='purple')  # 顯示RSI指標
+            kwargs.update({
+                'title': 'RSI Analysis',
+                'addplot': [ap_rsi] + add_signals(df, 'RSI_Position', 'RSI_Position')
+            })
+       
+        elif indicator == 'RSV':
+            ap_rsv = mpf.make_addplot(df['RSV'], panel=2, color='green')  # 顯示Raw Stochastic Value指標
+            kwargs.update({
+                'title': 'Raw Stochastic Value Analysis',
+                'addplot': [ap_rsv] + add_signals(df, 'RSV_Position', 'RSV_Position'),
+                'panel_ratios': (2, 1)
+            })
+
+            '''
+        elif indicator == 'Raw_Stochastic':
+            ap_stochastic = mpf.make_addplot(df['Raw_Stochastic'], panel=1, color='orange')
+            kwargs.update({
+                'title': 'Raw Stochastic Value Analysis',
+                'addplot': [ap_stochastic] + Plotter.add_signals(df, 'Raw_Stochastic_Position', 'Raw_Stochastic_Position'),
+                'panel_ratios': (2, 1)
+            })
+            '''          
+        
+        elif indicator == 'Raw_Stochastic':
+            ap_k = mpf.make_addplot(df['K'], panel=2, color='orange')  # 顯示K值
+            ap_d = mpf.make_addplot(df['D'], panel=2, color='red')     # 顯示D值
+            kwargs.update({
+                'title': 'Raw Stochastic Analysis',
+                'addplot': [ap_k, ap_d] + add_signals(df, 'Raw_Stochastic_Position', 'Raw_Stochastic_Position')
+            })
+
+        elif indicator == 'WPR':
+            ap_wpr = mpf.make_addplot(df['Williams_%R'], panel=1, color='cyan')
+            kwargs.update({
+                'title': 'Williams %R Analysis',
+                'addplot': [ap_wpr] + add_signals(df, 'Williams_%R_Position', 'Williams_%R_Position'),
+                'panel_ratios': (2, 1)
+            })
+
+        elif indicator == 'CCI':
+            ap_cci = mpf.make_addplot(df['CCI'], panel=1, color='brown')
+            kwargs.update({
+                'title': 'Commodity Channel Index Analysis',
+                'addplot': [ap_cci] + add_signals(df, 'CCI_Position', 'CCI_Position'),
+                'panel_ratios': (2, 1)
+            })
+
+        elif indicator == 'ATR':
+            ap_atr = mpf.make_addplot(df['ATR'], panel=1, color='magenta')
+            kwargs.update({
+                'title': 'Average True Range Analysis',
+                'addplot': [ap_atr] + add_signals(df, 'ATR_Position', 'ATR_Position'),
+                'panel_ratios': (2, 1)
+            })
+
         
         else:
             raise ValueError(f"不支援的技術指標: {indicator}")

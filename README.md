@@ -1,3 +1,4 @@
+``` Bash
 stock_analysis_project/
 │
 ├── indicators/                 # 技術指標的邏輯
@@ -38,3 +39,4 @@ stock_analysis_project/
 ├── main.py                     # 主程式，管理整個分析流程
 ├── README.md                   # 專案說明文件
 └── requirements.txt            # 依賴包清單
+```
