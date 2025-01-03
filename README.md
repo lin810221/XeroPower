@@ -6,7 +6,7 @@ stock_analysis_project/
 │   ├── moving_averages.py      # 包含 SMA、EMA、WMA 邏輯
 │   ├── bollinger_bands.py      # 布林通道邏輯
 │   ├── mad.py                  # Mean Absolute Deviation 邏輯
-|   ├── macd.py                 # Moving Average Convergence Divergence 邏輯
+│   ├── macd.py                 # Moving Average Convergence Divergence 邏輯
 │   ├── price_alias.py          # 價格相關指標計算
 │
 ├── analysis/                   # 買賣信號生成的邏輯

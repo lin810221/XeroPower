@@ -60,7 +60,7 @@ ta.analyze_RSV()
 
 
 # Stochastic Oscillator (KD)
-RawStochastic.calculate(df, price_type=price_type)
+# RawStochastic.calculate(df, price_type=price_type)
 ta.analyze_Raw_Stochastic()
 
 # The Williams Percent Range (W%R)
